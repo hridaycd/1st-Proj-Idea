@@ -215,19 +215,6 @@ npm test
 
 ## 🚀 Deployment
 
-### Deploy to Render (Backend)
-
-Use the included `render.yaml` blueprint for one-click deploy:
-
-1. Push this repo to GitHub.
-2. In Render, click New → Blueprint → Connect your repo.
-3. The Web Service will build with `pip install -r requirements.txt` and start with `uvicorn backend.main:app --host 0.0.0.0 --port 8000`.
-4. Health check path: `/api/health`.
-5. Add env vars (e.g., `SECRET_KEY`, `DATABASE_URL`, etc.) under Settings → Environment.
-6. Add a custom domain (e.g., `api.yourdomain.com`) under Settings → Custom Domains. Render auto‑provisions HTTPS.
-
-Set your mobile production API base URL to `https://api.yourdomain.com`.
-
 ### AWS Deployment
 
 1. **EC2 Setup**
