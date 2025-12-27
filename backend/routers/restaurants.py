@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from database import get_db
-from models import Restaurant, Table, User, UserType
+from models import Restaurant, Table, User, UserType, Booking
 from schemas import RestaurantCreate, RestaurantResponse, TableCreate, TableResponse, RestaurantSearch
 from routers.auth import get_current_user
 

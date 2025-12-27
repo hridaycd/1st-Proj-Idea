@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 import uvicorn
 import os
 from dotenv import load_dotenv
+from sqlalchemy import text
 
 from database import get_db, engine
 from models import Base
@@ -26,7 +27,12 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://your-frontend.com",
+        "https://your-mobile-app.com"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -64,6 +70,15 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
 @app.get("/api/health")
 async def health_check():
     return {"status": "healthy", "message": "API is running"}
+
+@app.get("/api/db-health")
+async def db_health():
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return {"status": "ok"}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
 
 if __name__ == "__main__":
     uvicorn.run(

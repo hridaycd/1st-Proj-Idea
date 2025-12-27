@@ -34,7 +34,7 @@ def run_command(command, cwd=None, check=True):
 
 def check_requirements():
     """Check if required tools are installed."""
-    print("🔍 Checking requirements...")
+    print("Checking requirements...")
     
     requirements = {
         'python': 'python3 --version',
@@ -50,18 +50,18 @@ def check_requirements():
         if result.returncode != 0:
             missing.append(tool)
         else:
-            print(f"✅ {tool} is installed")
+            print(f"{tool} is installed")
     
     if missing:
-        print(f"❌ Missing requirements: {', '.join(missing)}")
+        print(f"Missing requirements: {', '.join(missing)}")
         print("Please install the missing tools before continuing.")
         sys.exit(1)
     
-    print("✅ All requirements are satisfied!")
+    print("All requirements are satisfied!")
 
 def setup_backend():
     """Set up the backend environment."""
-    print("\n🐍 Setting up backend...")
+    print("\nSetting up backend...")
     
     backend_dir = Path("backend")
     if not backend_dir.exists():
@@ -72,16 +72,30 @@ def setup_backend():
     venv_dir = backend_dir / "venv"
     if not venv_dir.exists():
         print("Creating Python virtual environment...")
-        run_command("python3 -m venv venv", cwd=backend_dir)
-    
-    # Install dependencies
-    print("Installing Python dependencies...")
+        venv_result = run_command(f"{sys.executable} -m venv venv", cwd=backend_dir, check=False)
+        if venv_result.returncode != 0:
+            print("❌ Failed to create virtual environment! Check your Python installation and permissions.")
+            print(venv_result.stderr)
+            return False
+
+    # Compute the venv executable as an absolute path
     if os.name == 'nt':  # Windows
-        pip_cmd = str(venv_dir / "Scripts" / "pip")
+        python_cmd = (venv_dir / "Scripts" / "python.exe").resolve()
     else:  # Unix/Linux/macOS
-        pip_cmd = str(venv_dir / "bin" / "pip")
-    
-    run_command(f"{pip_cmd} install -r requirements.txt", cwd=backend_dir)
+        python_cmd = (venv_dir / "bin" / "python").resolve()
+
+    print(f"[DEBUG] About to use python_cmd: {python_cmd}")
+    print(f"[DEBUG] Absolute python_cmd: {python_cmd}")
+    print(f"[DEBUG] Exists? {os.path.exists(python_cmd)}")
+    print(f"[DEBUG] backend_dir absolute: {os.path.abspath(backend_dir)}")
+    print(f"[DEBUG] CWD for pip install: {os.path.abspath(backend_dir)}")
+
+    if not Path(python_cmd).exists():
+        print(f"❌ Python executable not found at {python_cmd} after venv creation! Aborting backend setup.")
+        return False
+
+    # Use only 'requirements.txt' since cwd=backend_dir
+    run_command(f'"{python_cmd}" -m pip install -r requirements.txt', cwd=backend_dir)
     
     # Create .env file if it doesn't exist
     env_file = backend_dir / ".env"
@@ -90,12 +104,12 @@ def setup_backend():
         shutil.copy("env.example", env_file)
         print("⚠️  Please edit backend/.env with your configuration")
     
-    print("✅ Backend setup complete!")
+    print("[OK] Backend setup complete!")
     return True
 
 def setup_frontend():
     """Set up the frontend environment."""
-    print("\n⚛️  Setting up frontend...")
+    print("\nSetting up frontend...")
     
     frontend_dir = Path("frontend")
     if not frontend_dir.exists():
@@ -106,27 +120,27 @@ def setup_frontend():
     print("Installing Node.js dependencies...")
     run_command("npm install", cwd=frontend_dir)
     
-    print("✅ Frontend setup complete!")
+    print("[OK] Frontend setup complete!")
     return True
 
 def setup_database():
     """Set up the database."""
-    print("\n🗄️  Setting up database...")
+    print("\nSetting up database...")
     
     # Check if PostgreSQL is running
     result = run_command("pg_isready", check=False)
     if result.returncode != 0:
-        print("⚠️  PostgreSQL is not running. Please start PostgreSQL before continuing.")
+        print("[WARNING]  PostgreSQL is not running. Please start PostgreSQL before continuing.")
         print("You can also use Docker to run the database:")
         print("docker run --name postgres -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres:15")
         return False
     
-    print("✅ Database setup complete!")
+    print("[OK] Database setup complete!")
     return True
 
 def create_directories():
     """Create necessary directories."""
-    print("\n📁 Creating directories...")
+    print("\nCreating directories...")
     
     directories = [
         "logs",
@@ -136,11 +150,11 @@ def create_directories():
     
     for directory in directories:
         Path(directory).mkdir(exist_ok=True)
-        print(f"✅ Created directory: {directory}")
+        print(f"Created directory: {directory}")
 
 def main():
     """Main setup function."""
-    print("🚀 Booking Management System Setup")
+    print("Booking Management System Setup")
     print("=" * 50)
     
     # Check requirements
@@ -162,8 +176,8 @@ def main():
     # Setup database
     setup_database()
     
-    print("\n🎉 Setup complete!")
-    print("\n📋 Next steps:")
+    print("\n[SETUP COMPLETE]")
+    print("\n[NEXT STEPS]:")
     print("1. Edit backend/.env with your configuration")
     print("2. Start the database (PostgreSQL)")
     print("3. Run database migrations:")
@@ -174,7 +188,7 @@ def main():
     print("   cd frontend && npm start")
     print("\nOr use Docker:")
     print("   docker-compose up -d")
-    print("\n🌐 Access the application:")
+    print("\n[ACCESS INFO]:")
     print("   Frontend: http://localhost:3000")
     print("   Backend:  http://localhost:8000")
     print("   API Docs: http://localhost:8000/docs")
